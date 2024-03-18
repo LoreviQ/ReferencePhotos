@@ -13,7 +13,7 @@ func getProgressIncrementer(increment float32) chan float32 {
 	progressIncrementer := make(chan float32)
 	go func() {
 		for {
-			time.Sleep(time.Second / 25)
+			time.Sleep(time.Second / 100)
 			progressIncrementer <- increment
 		}
 	}()

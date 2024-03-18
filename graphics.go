@@ -48,7 +48,7 @@ func draw(window *app.Window) error {
 	var sourceButton widget.Clickable
 
 	// Main App Widgets
-	progressIncrementer := getProgressIncrementer(0.004)
+	var progressIncrementer chan float32
 	go incrementProgress(window, progressIncrementer)
 
 	// Main event loop
@@ -86,31 +86,41 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 			},
 		),
 		// Image Source
-		layout.Rigid(
+		middleAlign(gtx, d,
 			func(gtx layout.Context) layout.Dimensions {
-				return middleAlign(gtx, d,
-					func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, sourceButton, "Select an image source")
+				button := material.Button(theme, sourceButton, "Select an image source")
+				return button.Layout(gtx)
+			},
+		),
+		// Timer
+		middleAlign(gtx, d,
+			func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{
+					Axis: layout.Horizontal,
+				}.Layout(gtx,
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, startButton, "left")
 						return button.Layout(gtx)
-					},
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, startButton, "right")
+						return button.Layout(gtx)
+					}),
 				)
 			},
 		),
+
 		// Start
-		layout.Rigid(
+		middleAlign(gtx, d,
 			func(gtx layout.Context) layout.Dimensions {
-				return middleAlign(gtx, d,
-					func(gtx layout.Context) layout.Dimensions {
-						var text string
-						if !active {
-							text = "Start"
-						} else {
-							text = "Stop"
-						}
-						button := material.Button(theme, startButton, text)
-						return button.Layout(gtx)
-					},
-				)
+				var text string
+				if !active {
+					text = "Start"
+				} else {
+					text = "Stop"
+				}
+				button := material.Button(theme, startButton, text)
+				return button.Layout(gtx)
 			},
 		),
 		// Whitespace
@@ -144,13 +154,16 @@ func getDimensions(gtx layout.Context) dimensions {
 	return d
 }
 
-func middleAlign(gtx layout.Context, d dimensions, element func(layout.Context) layout.Dimensions) layout.Dimensions {
-	margins := layout.Inset{
-		Top:    unit.Dp(5),
-		Bottom: unit.Dp(5),
-		Right:  unit.Dp(d.right),
-		Left:   unit.Dp(d.left),
-	}
-	return margins.Layout(gtx, element)
-
+func middleAlign(gtx layout.Context, d dimensions, element func(layout.Context) layout.Dimensions) layout.FlexChild {
+	return layout.Rigid(
+		func(gtx layout.Context) layout.Dimensions {
+			margins := layout.Inset{
+				Top:    unit.Dp(5),
+				Bottom: unit.Dp(5),
+				Right:  unit.Dp(d.right),
+				Left:   unit.Dp(d.left),
+			}
+			return margins.Layout(gtx, element)
+		},
+	)
 }
