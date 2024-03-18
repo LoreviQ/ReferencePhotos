@@ -7,6 +7,7 @@ import (
 	"gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -40,10 +41,14 @@ func createGUI(width, height int) {
 
 func draw(window *app.Window) error {
 	var ops op.Ops
-	var startButton widget.Clickable
-	progressIncrementer := getProgressIncrementer(0.004)
 	theme := material.NewTheme()
 
+	// Landing Page Widgets
+	var startButton widget.Clickable
+	var sourceButton widget.Clickable
+
+	// Main App Widgets
+	progressIncrementer := getProgressIncrementer(0.004)
 	go incrementProgress(window, progressIncrementer)
 
 	// Main event loop
@@ -52,7 +57,7 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, &startButton, &progress)
+			landingPage(event, &ops, theme, &startButton, &sourceButton)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -61,32 +66,40 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton *widget.Clickable, progress *float32) {
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton, sourceButton *widget.Clickable) {
 	gtx := app.NewContext(ops, event)
 	if startButton.Clicked(gtx) {
 		active = !active
 	}
 	d := getDimensions(gtx)
+	// Whitespace
 	layout.Flex{
 		Axis:    layout.Vertical,
 		Spacing: layout.SpaceStart,
 	}.Layout(gtx,
+		// Title
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
-				bar := material.ProgressBar(theme, *progress)
-				return bar.Layout(gtx)
+				title := material.Label(theme, unit.Sp(40), "SLIDESHOW")
+				title.Alignment = text.Middle
+				return title.Layout(gtx)
 			},
 		),
+		// Image Source
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
-				margins := layout.Inset{
-					Top:    unit.Dp(5),
-					Bottom: unit.Dp(5),
-					Right:  unit.Dp(d.right),
-					Left:   unit.Dp(d.left),
-				}
-
-				return margins.Layout(gtx,
+				return middleAlign(gtx, d,
+					func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, sourceButton, "Select an image source")
+						return button.Layout(gtx)
+					},
+				)
+			},
+		),
+		// Start
+		layout.Rigid(
+			func(gtx layout.Context) layout.Dimensions {
+				return middleAlign(gtx, d,
 					func(gtx layout.Context) layout.Dimensions {
 						var text string
 						if !active {
@@ -98,9 +111,9 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 						return button.Layout(gtx)
 					},
 				)
-
 			},
 		),
+		// Whitespace
 		layout.Rigid(
 			layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
 		),
@@ -129,4 +142,15 @@ func getDimensions(gtx layout.Context) dimensions {
 		d.left, d.right = 0, 0
 	}
 	return d
+}
+
+func middleAlign(gtx layout.Context, d dimensions, element func(layout.Context) layout.Dimensions) layout.Dimensions {
+	margins := layout.Inset{
+		Top:    unit.Dp(5),
+		Bottom: unit.Dp(5),
+		Right:  unit.Dp(d.right),
+		Left:   unit.Dp(d.left),
+	}
+	return margins.Layout(gtx, element)
+
 }
