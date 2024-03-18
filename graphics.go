@@ -13,6 +13,13 @@ import (
 	"gioui.org/widget/material"
 )
 
+type dimensions struct {
+	top    int
+	bottom int
+	right  int
+	left   int
+}
+
 func createGUI(width, height int) {
 	// Define Resolution
 	if width == 0 || height == 0 {
@@ -55,6 +62,8 @@ func draw(window *app.Window) error {
 
 func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme, event app.FrameEvent) {
 	gtx := app.NewContext(&ops, event)
+	d := getDimensions(gtx)
+	fmt.Println(d)
 	layout.Flex{
 		Axis:    layout.Vertical,
 		Spacing: layout.SpaceStart,
@@ -64,13 +73,12 @@ func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme
 				margins := layout.Inset{
 					Top:    unit.Dp(5),
 					Bottom: unit.Dp(5),
-					Right:  unit.Dp(100),
-					Left:   unit.Dp(100),
+					Right:  unit.Dp(d.right),
+					Left:   unit.Dp(d.left),
 				}
 
 				return margins.Layout(gtx,
 					func(gtx layout.Context) layout.Dimensions {
-						fmt.Printf("gtx.Constraints: %v\n", gtx.Constraints)
 						button := material.Button(theme, &startButton, "Start")
 						return button.Layout(gtx)
 					},
@@ -79,8 +87,32 @@ func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme
 			},
 		),
 		layout.Rigid(
-			layout.Spacer{Height: unit.Dp(25)}.Layout,
+			layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
 		),
 	)
 	event.Frame(gtx.Ops)
+}
+
+func getDimensions(gtx layout.Context) dimensions {
+	const actionHeight int = 50
+	const actionWidth int = 500
+
+	var d dimensions
+	fmt.Println(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
+	width, height := gtx.Constraints.Max.X, gtx.Constraints.Max.Y
+
+	if height > actionHeight {
+		d.top = int((height - actionHeight) / 2)
+		d.bottom = (height - actionHeight) - d.top
+	} else {
+		d.top, d.bottom = 0, 0
+	}
+
+	if width > actionWidth {
+		d.left = int((width - actionWidth) / 2)
+		d.right = (width - actionWidth) - d.left
+	} else {
+		d.left, d.right = 0, 0
+	}
+	return d
 }
