@@ -12,10 +12,6 @@ import (
 	"gioui.org/widget/material"
 )
 
-var progress float32
-var progressIncrementer chan float32
-var clicked bool
-
 type dimensions struct {
 	top    int
 	bottom int
@@ -43,10 +39,12 @@ func createGUI(width, height int) {
 }
 
 func draw(window *app.Window) error {
-	var startButton widget.Clickable
-
 	var ops op.Ops
+	var startButton widget.Clickable
+	progressIncrementer := getProgressIncrementer(0.004)
 	theme := material.NewTheme()
+
+	go incrementProgress(window, progressIncrementer)
 
 	// Main event loop
 	for {
@@ -54,7 +52,7 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, &startButton)
+			landingPage(event, &ops, theme, &startButton, &progress)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -63,10 +61,10 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton *widget.Clickable) {
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton *widget.Clickable, progress *float32) {
 	gtx := app.NewContext(ops, event)
 	if startButton.Clicked(gtx) {
-		clicked = !clicked
+		active = !active
 	}
 	d := getDimensions(gtx)
 	layout.Flex{
@@ -75,7 +73,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 	}.Layout(gtx,
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
-				bar := material.ProgressBar(theme, progress)
+				bar := material.ProgressBar(theme, *progress)
 				return bar.Layout(gtx)
 			},
 		),
@@ -91,7 +89,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 				return margins.Layout(gtx,
 					func(gtx layout.Context) layout.Dimensions {
 						var text string
-						if !clicked {
+						if !active {
 							text = "Start"
 						} else {
 							text = "Stop"
