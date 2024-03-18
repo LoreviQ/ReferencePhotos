@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,6 +11,10 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
+
+var progress float32
+var progressIncrementer chan float32
+var clicked bool
 
 type dimensions struct {
 	top    int
@@ -51,7 +54,7 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(ops, startButton, theme, event)
+			landingPage(event, &ops, theme, &startButton)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -60,14 +63,22 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme, event app.FrameEvent) {
-	gtx := app.NewContext(&ops, event)
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton *widget.Clickable) {
+	gtx := app.NewContext(ops, event)
+	if startButton.Clicked(gtx) {
+		clicked = !clicked
+	}
 	d := getDimensions(gtx)
-	fmt.Println(d)
 	layout.Flex{
 		Axis:    layout.Vertical,
 		Spacing: layout.SpaceStart,
 	}.Layout(gtx,
+		layout.Rigid(
+			func(gtx layout.Context) layout.Dimensions {
+				bar := material.ProgressBar(theme, progress)
+				return bar.Layout(gtx)
+			},
+		),
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
 				margins := layout.Inset{
@@ -79,7 +90,13 @@ func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme
 
 				return margins.Layout(gtx,
 					func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, &startButton, "Start")
+						var text string
+						if !clicked {
+							text = "Start"
+						} else {
+							text = "Stop"
+						}
+						button := material.Button(theme, startButton, text)
 						return button.Layout(gtx)
 					},
 				)
@@ -94,23 +111,22 @@ func landingPage(ops op.Ops, startButton widget.Clickable, theme *material.Theme
 }
 
 func getDimensions(gtx layout.Context) dimensions {
-	const actionHeight int = 50
-	const actionWidth int = 500
+	const interactableHeight int = 50
+	const interactableWidth int = 500
 
 	var d dimensions
-	fmt.Println(gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	width, height := gtx.Constraints.Max.X, gtx.Constraints.Max.Y
 
-	if height > actionHeight {
-		d.top = int((height - actionHeight) / 2)
-		d.bottom = (height - actionHeight) - d.top
+	if height > interactableHeight {
+		d.top = int((height - interactableHeight) / 2)
+		d.bottom = (height - interactableHeight) - d.top
 	} else {
 		d.top, d.bottom = 0, 0
 	}
 
-	if width > actionWidth {
-		d.left = int((width - actionWidth) / 2)
-		d.right = (width - actionWidth) - d.left
+	if width > interactableWidth {
+		d.left = int((width - interactableWidth) / 2)
+		d.right = (width - interactableWidth) - d.left
 	} else {
 		d.left, d.right = 0, 0
 	}
