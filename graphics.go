@@ -128,8 +128,16 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw la
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
-						title := material.Label(theme, unit.Sp(40), "SLIDESHOW")
+						title := material.Label(theme, unit.Sp(60), "SLIDESHOW!")
 						title.Alignment = text.Middle
+						title.Color = myColours.text
+						return title.Layout(gtx)
+					},
+				),
+				layout.Flexed(2,
+					func(gtx layout.Context) layout.Dimensions {
+						title := material.Label(theme, unit.Sp(15), "v1.0 Oliver Jay, 2024")
+						title.Alignment = text.End
 						title.Color = myColours.text
 						return title.Layout(gtx)
 					},
@@ -142,7 +150,18 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw la
 						return myButton(gtx, theme, lw.sourceButton, "Select an image source", myColours.highlight)
 					},
 				),
-				layout.Flexed(1,
+				layout.Flexed(2,
+					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
+				),
+				layout.Flexed(2,
+					func(gtx layout.Context) layout.Dimensions {
+						title := material.Label(theme, unit.Sp(20), "Time Between Images")
+						title.Alignment = text.Middle
+						title.Color = myColours.text
+						return title.Layout(gtx)
+					},
+				),
+				layout.Flexed(0.5,
 					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
 				),
 				layout.Flexed(5,
