@@ -20,6 +20,17 @@ type dimensions struct {
 	left   int
 }
 
+type landingPageWidgets struct {
+	startButton   *widget.Clickable
+	sourceButton  *widget.Clickable
+	timeButton30s *widget.Clickable
+	timeButton45s *widget.Clickable
+	timeButton1m  *widget.Clickable
+	timeButton2m  *widget.Clickable
+	timeButton5m  *widget.Clickable
+	timeButton10m *widget.Clickable
+}
+
 func createGUI(width, height int) {
 	// Define Resolution
 	if width == 0 || height == 0 {
@@ -44,10 +55,18 @@ func draw(window *app.Window) error {
 	theme := material.NewTheme()
 
 	// Landing Page Widgets
-	var startButton widget.Clickable
-	var sourceButton widget.Clickable
+	lw := landingPageWidgets{
+		startButton:   &widget.Clickable{},
+		sourceButton:  &widget.Clickable{},
+		timeButton30s: &widget.Clickable{},
+		timeButton45s: &widget.Clickable{},
+		timeButton1m:  &widget.Clickable{},
+		timeButton2m:  &widget.Clickable{},
+		timeButton5m:  &widget.Clickable{},
+		timeButton10m: &widget.Clickable{},
+	}
 
-	// Main App Widgets
+	// Slideshow Widgets
 	var progressIncrementer chan float32
 	go incrementProgress(window, progressIncrementer)
 
@@ -57,7 +76,7 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, &startButton, &sourceButton)
+			landingPage(event, &ops, theme, lw)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -66,11 +85,9 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, startButton, sourceButton *widget.Clickable) {
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
 	gtx := app.NewContext(ops, event)
-	if startButton.Clicked(gtx) {
-		active = !active
-	}
+	modifyState(gtx, lw)
 	d := getDimensions(gtx)
 	// Whitespace
 	layout.Flex{
@@ -86,24 +103,40 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 			},
 		),
 		// Image Source
-		middleAlign(gtx, d,
+		middleAlign(d,
 			func(gtx layout.Context) layout.Dimensions {
-				button := material.Button(theme, sourceButton, "Select an image source")
+				button := material.Button(theme, lw.sourceButton, "Select an image source")
 				return button.Layout(gtx)
 			},
 		),
 		// Timer
-		middleAlign(gtx, d,
+		middleAlign(d,
 			func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{
 					Axis: layout.Horizontal,
 				}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, startButton, "left")
+						button := material.Button(theme, lw.timeButton30s, "30s")
 						return button.Layout(gtx)
 					}),
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, startButton, "right")
+						button := material.Button(theme, lw.timeButton45s, "45s")
+						return button.Layout(gtx)
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, lw.timeButton1m, "1m")
+						return button.Layout(gtx)
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, lw.timeButton2m, "2m")
+						return button.Layout(gtx)
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, lw.timeButton5m, "5m")
+						return button.Layout(gtx)
+					}),
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, lw.timeButton10m, "10m")
 						return button.Layout(gtx)
 					}),
 				)
@@ -111,7 +144,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 		),
 
 		// Start
-		middleAlign(gtx, d,
+		middleAlign(d,
 			func(gtx layout.Context) layout.Dimensions {
 				var text string
 				if !active {
@@ -119,7 +152,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, start
 				} else {
 					text = "Stop"
 				}
-				button := material.Button(theme, startButton, text)
+				button := material.Button(theme, lw.startButton, text)
 				return button.Layout(gtx)
 			},
 		),
@@ -154,7 +187,7 @@ func getDimensions(gtx layout.Context) dimensions {
 	return d
 }
 
-func middleAlign(gtx layout.Context, d dimensions, element func(layout.Context) layout.Dimensions) layout.FlexChild {
+func middleAlign(d dimensions, element func(layout.Context) layout.Dimensions) layout.FlexChild {
 	return layout.Rigid(
 		func(gtx layout.Context) layout.Dimensions {
 			margins := layout.Inset{
@@ -166,4 +199,10 @@ func middleAlign(gtx layout.Context, d dimensions, element func(layout.Context) 
 			return margins.Layout(gtx, element)
 		},
 	)
+}
+
+func modifyState(gtx layout.Context, lw landingPageWidgets) {
+	if lw.startButton.Clicked(gtx) {
+		active = !active
+	}
 }
