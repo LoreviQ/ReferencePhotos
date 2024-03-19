@@ -13,6 +13,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"github.com/ncruces/zenity"
 )
 
 type colours struct {
@@ -25,7 +26,8 @@ type colours struct {
 var myColours colours
 
 type state struct {
-	time string
+	time      string
+	directory string
 }
 
 var localState state
@@ -70,7 +72,7 @@ func createGUI(width, height int) {
 func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
-	localState = state{time: "30s"}
+	localState = state{time: "30s", directory: ""}
 
 	//	My colours
 	myColours = colours{
@@ -257,4 +259,15 @@ func modifyState(gtx layout.Context, lw landingPageWidgets) {
 	if lw.timeButton10m.Clicked(gtx) {
 		localState.time = "10m"
 	}
+
+	if lw.sourceButton.Clicked(gtx) {
+		dir, err := zenity.SelectFile(
+			zenity.Filename(""),
+			zenity.Directory())
+		if err != nil {
+			log.Print(err)
+		}
+		localState.directory = dir
+	}
+
 }
