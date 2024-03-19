@@ -1,17 +1,26 @@
 package main
 
 import (
+	"image/color"
 	"log"
 	"os"
 
 	"gioui.org/app"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/paint"
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
+
+type colours struct {
+	bg        color.NRGBA
+	fg        color.NRGBA
+	text      color.NRGBA
+	highlight color.NRGBA
+}
 
 type dimensions struct {
 	top    int
@@ -54,6 +63,14 @@ func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
 
+	//	My colours
+	myColours := colours{
+		bg:        color.NRGBA{41, 40, 45, 1},
+		fg:        color.NRGBA{53, 54, 62, 1},
+		text:      color.NRGBA{255, 255, 255, 1},
+		highlight: color.NRGBA{60, 92, 115, 1},
+	}
+
 	// Landing Page Widgets
 	lw := landingPageWidgets{
 		startButton:   &widget.Clickable{},
@@ -72,11 +89,12 @@ func draw(window *app.Window) error {
 
 	// Main event loop
 	for {
+
 		switch event := window.NextEvent().(type) {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, lw)
+			landingPage(event, &ops, theme, myColours, lw)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -85,89 +103,96 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myColours colours, lw landingPageWidgets) {
 	gtx := app.NewContext(ops, event)
 	modifyState(gtx, lw)
-	d := getDimensions(gtx)
-	// Whitespace
-	layout.Flex{
-		Axis:    layout.Vertical,
-		Spacing: layout.SpaceStart,
-	}.Layout(gtx,
-		// Title
-		layout.Rigid(
-			func(gtx layout.Context) layout.Dimensions {
-				title := material.Label(theme, unit.Sp(40), "SLIDESHOW")
-				title.Alignment = text.Middle
-				return title.Layout(gtx)
-			},
-		),
-		// Image Source
-		middleAlign(d,
-			func(gtx layout.Context) layout.Dimensions {
-				button := material.Button(theme, lw.sourceButton, "Select an image source")
-				return button.Layout(gtx)
-			},
-		),
-		// Timer
-		middleAlign(d,
-			func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{
-					Axis: layout.Horizontal,
-				}.Layout(gtx,
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton30s, "30s")
+	paint.Fill(gtx.Ops, myColours.bg)
+	d := getDimensions(gtx, 400, 500)
+	margins := layout.Inset{
+		Top:    unit.Dp(d.top),
+		Bottom: unit.Dp(d.bottom),
+		Right:  unit.Dp(d.right),
+		Left:   unit.Dp(d.left),
+	}
+	margins.Layout(gtx,
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{
+				Axis:    layout.Vertical,
+				Spacing: layout.SpaceStart,
+			}.Layout(gtx,
+				layout.Flexed(5,
+					func(gtx layout.Context) layout.Dimensions {
+						title := material.Label(theme, unit.Sp(40), "SLIDESHOW")
+						title.Alignment = text.Middle
+						return title.Layout(gtx)
+					},
+				),
+				layout.Flexed(1,
+					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
+				),
+				layout.Flexed(5,
+					func(gtx layout.Context) layout.Dimensions {
+						button := material.Button(theme, lw.sourceButton, "Select an image source")
 						return button.Layout(gtx)
-					}),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton45s, "45s")
+					},
+				),
+				layout.Flexed(1,
+					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
+				),
+				layout.Flexed(5,
+					func(gtx layout.Context) layout.Dimensions {
+						return layout.Flex{
+							Axis: layout.Horizontal,
+						}.Layout(gtx,
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton30s, "30s")
+								return button.Layout(gtx)
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton45s, "45s")
+								return button.Layout(gtx)
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton1m, "1m")
+								return button.Layout(gtx)
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton2m, "2m")
+								return button.Layout(gtx)
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton5m, "5m")
+								return button.Layout(gtx)
+							}),
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+								button := material.Button(theme, lw.timeButton10m, "10m")
+								return button.Layout(gtx)
+							}),
+						)
+					},
+				),
+				layout.Flexed(1,
+					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
+				),
+				layout.Flexed(5,
+					func(gtx layout.Context) layout.Dimensions {
+						var text string
+						if !active {
+							text = "Start"
+						} else {
+							text = "Stop"
+						}
+						button := material.Button(theme, lw.startButton, text)
 						return button.Layout(gtx)
-					}),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton1m, "1m")
-						return button.Layout(gtx)
-					}),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton2m, "2m")
-						return button.Layout(gtx)
-					}),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton5m, "5m")
-						return button.Layout(gtx)
-					}),
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.timeButton10m, "10m")
-						return button.Layout(gtx)
-					}),
-				)
-			},
-		),
-
-		// Start
-		middleAlign(d,
-			func(gtx layout.Context) layout.Dimensions {
-				var text string
-				if !active {
-					text = "Start"
-				} else {
-					text = "Stop"
-				}
-				button := material.Button(theme, lw.startButton, text)
-				return button.Layout(gtx)
-			},
-		),
-		// Whitespace
-		layout.Rigid(
-			layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
-		),
+					},
+				),
+			)
+		},
 	)
 	event.Frame(gtx.Ops)
 }
 
-func getDimensions(gtx layout.Context) dimensions {
-	const interactableHeight int = 50
-	const interactableWidth int = 500
-
+func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int) dimensions {
 	var d dimensions
 	width, height := gtx.Constraints.Max.X, gtx.Constraints.Max.Y
 
@@ -185,20 +210,6 @@ func getDimensions(gtx layout.Context) dimensions {
 		d.left, d.right = 0, 0
 	}
 	return d
-}
-
-func middleAlign(d dimensions, element func(layout.Context) layout.Dimensions) layout.FlexChild {
-	return layout.Rigid(
-		func(gtx layout.Context) layout.Dimensions {
-			margins := layout.Inset{
-				Top:    unit.Dp(5),
-				Bottom: unit.Dp(5),
-				Right:  unit.Dp(d.right),
-				Left:   unit.Dp(d.left),
-			}
-			return margins.Layout(gtx, element)
-		},
-	)
 }
 
 func modifyState(gtx layout.Context, lw landingPageWidgets) {
