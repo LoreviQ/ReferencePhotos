@@ -22,6 +22,8 @@ type colours struct {
 	highlight color.NRGBA
 }
 
+var myColours colours
+
 type dimensions struct {
 	top    int
 	bottom int
@@ -64,7 +66,7 @@ func draw(window *app.Window) error {
 	theme := material.NewTheme()
 
 	//	My colours
-	myColours := colours{
+	myColours = colours{
 		bg:        color.NRGBA{41, 40, 45, 1},
 		fg:        color.NRGBA{53, 54, 62, 1},
 		text:      color.NRGBA{255, 255, 255, 1},
@@ -132,8 +134,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 				),
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
-						button := material.Button(theme, lw.sourceButton, "Select an image source")
-						return button.Layout(gtx)
+						return myButton(gtx, theme, lw.sourceButton, "Select an image source")
 					},
 				),
 				layout.Flexed(1,
@@ -145,28 +146,22 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 							Axis: layout.Horizontal,
 						}.Layout(gtx,
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton30s, "30s")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton30s, "30s")
 							}),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton45s, "45s")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton45s, "45s")
 							}),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton1m, "1m")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton1m, "1m")
 							}),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton2m, "2m")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton2m, "2m")
 							}),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton5m, "5m")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton5m, "5m")
 							}),
 							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								button := material.Button(theme, lw.timeButton10m, "10m")
-								return button.Layout(gtx)
+								return myButton(gtx, theme, lw.timeButton10m, "10m")
 							}),
 						)
 					},
@@ -182,14 +177,20 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 						} else {
 							text = "Stop"
 						}
-						button := material.Button(theme, lw.startButton, text)
-						return button.Layout(gtx)
+						return myButton(gtx, theme, lw.startButton, text)
 					},
 				),
 			)
 		},
 	)
 	event.Frame(gtx.Ops)
+}
+
+func myButton(gtx layout.Context, theme *material.Theme, widget *widget.Clickable, text string) layout.Dimensions {
+	button := material.Button(theme, widget, text)
+	button.CornerRadius = unit.Dp(0)
+	button.Inset = layout.UniformInset(unit.Dp(2))
+	return button.Layout(gtx)
 }
 
 func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int) dimensions {
