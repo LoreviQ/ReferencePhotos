@@ -24,6 +24,12 @@ type colours struct {
 
 var myColours colours
 
+type state struct {
+	time string
+}
+
+var localState state
+
 type dimensions struct {
 	top    int
 	bottom int
@@ -64,13 +70,14 @@ func createGUI(width, height int) {
 func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
+	localState = state{time: "30s"}
 
 	//	My colours
 	myColours = colours{
-		bg:        color.NRGBA{41, 40, 45, 1},
-		fg:        color.NRGBA{53, 54, 62, 1},
-		text:      color.NRGBA{255, 255, 255, 1},
-		highlight: color.NRGBA{60, 92, 115, 1},
+		bg:        color.NRGBA{41, 40, 45, 255},
+		fg:        color.NRGBA{53, 54, 62, 255},
+		text:      color.NRGBA{255, 255, 255, 255},
+		highlight: color.NRGBA{60, 92, 115, 255},
 	}
 
 	// Landing Page Widgets
@@ -96,7 +103,7 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, myColours, lw)
+			landingPage(event, &ops, theme, lw)
 
 		// Exit app
 		case app.DestroyEvent:
@@ -105,7 +112,7 @@ func draw(window *app.Window) error {
 	}
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myColours colours, lw landingPageWidgets) {
+func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
 	gtx := app.NewContext(ops, event)
 	modifyState(gtx, lw)
 	paint.Fill(gtx.Ops, myColours.bg)
@@ -118,14 +125,12 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 	}
 	margins.Layout(gtx,
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{
-				Axis:    layout.Vertical,
-				Spacing: layout.SpaceStart,
-			}.Layout(gtx,
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
 						title := material.Label(theme, unit.Sp(40), "SLIDESHOW")
 						title.Alignment = text.Middle
+						title.Color = myColours.text
 						return title.Layout(gtx)
 					},
 				),
@@ -134,7 +139,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 				),
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
-						return myButton(gtx, theme, lw.sourceButton, "Select an image source")
+						return myButton(gtx, theme, lw.sourceButton, "Select an image source", myColours.highlight)
 					},
 				),
 				layout.Flexed(1,
@@ -142,27 +147,13 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 				),
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{
-							Axis: layout.Horizontal,
-						}.Layout(gtx,
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton30s, "30s")
-							}),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton45s, "45s")
-							}),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton1m, "1m")
-							}),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton2m, "2m")
-							}),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton5m, "5m")
-							}),
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								return myButton(gtx, theme, lw.timeButton10m, "10m")
-							}),
+						return layout.Flex{}.Layout(gtx,
+							timerToggles("30s", lw.timeButton30s, theme),
+							timerToggles("45s", lw.timeButton45s, theme),
+							timerToggles("1m", lw.timeButton1m, theme),
+							timerToggles("2m", lw.timeButton2m, theme),
+							timerToggles("5m", lw.timeButton5m, theme),
+							timerToggles("10m", lw.timeButton10m, theme),
 						)
 					},
 				),
@@ -177,7 +168,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 						} else {
 							text = "Stop"
 						}
-						return myButton(gtx, theme, lw.startButton, text)
+						return myButton(gtx, theme, lw.startButton, text, myColours.highlight)
 					},
 				),
 			)
@@ -186,11 +177,22 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, myCol
 	event.Frame(gtx.Ops)
 }
 
-func myButton(gtx layout.Context, theme *material.Theme, widget *widget.Clickable, text string) layout.Dimensions {
+func myButton(gtx layout.Context, theme *material.Theme, widget *widget.Clickable, text string, colour color.NRGBA) layout.Dimensions {
 	button := material.Button(theme, widget, text)
 	button.CornerRadius = unit.Dp(0)
 	button.Inset = layout.UniformInset(unit.Dp(2))
+	button.Background = colour
 	return button.Layout(gtx)
+}
+
+func timerToggles(time string, widget *widget.Clickable, theme *material.Theme) layout.FlexChild {
+	buttonColour := myColours.fg
+	if localState.time == time {
+		buttonColour = myColours.highlight
+	}
+	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+		return myButton(gtx, theme, widget, time, buttonColour)
+	})
 }
 
 func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int) dimensions {
@@ -216,5 +218,24 @@ func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int
 func modifyState(gtx layout.Context, lw landingPageWidgets) {
 	if lw.startButton.Clicked(gtx) {
 		active = !active
+	}
+	// Time
+	if lw.timeButton30s.Clicked(gtx) {
+		localState.time = "30s"
+	}
+	if lw.timeButton45s.Clicked(gtx) {
+		localState.time = "45s"
+	}
+	if lw.timeButton1m.Clicked(gtx) {
+		localState.time = "1m"
+	}
+	if lw.timeButton2m.Clicked(gtx) {
+		localState.time = "2m"
+	}
+	if lw.timeButton5m.Clicked(gtx) {
+		localState.time = "5m"
+	}
+	if lw.timeButton10m.Clicked(gtx) {
+		localState.time = "10m"
 	}
 }
