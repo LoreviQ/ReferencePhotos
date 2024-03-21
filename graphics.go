@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"os"
@@ -152,15 +153,26 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw la
 						return myButton(gtx, theme, lw.sourceButton, "Select an image source", myColours.highlight)
 					},
 				),
+				layout.Flexed(0.5,
+					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
+				),
+				layout.Flexed(2,
+					func(gtx layout.Context) layout.Dimensions {
+						dirSource := material.Label(theme, unit.Sp(15), fmt.Sprintf("Source: %v", localState.directory))
+						dirSource.Alignment = text.Start
+						dirSource.Color = myColours.text
+						return dirSource.Layout(gtx)
+					},
+				),
 				layout.Flexed(2,
 					layout.Spacer{Height: unit.Dp(d.bottom)}.Layout,
 				),
 				layout.Flexed(2,
 					func(gtx layout.Context) layout.Dimensions {
-						title := material.Label(theme, unit.Sp(20), "Time Between Images")
-						title.Alignment = text.Middle
-						title.Color = myColours.text
-						return title.Layout(gtx)
+						subtitle := material.Label(theme, unit.Sp(20), "Time Between Images")
+						subtitle.Alignment = text.Middle
+						subtitle.Color = myColours.text
+						return subtitle.Layout(gtx)
 					},
 				),
 				layout.Flexed(0.5,
@@ -183,13 +195,7 @@ func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw la
 				),
 				layout.Flexed(5,
 					func(gtx layout.Context) layout.Dimensions {
-						var text string
-						if !active {
-							text = "Start"
-						} else {
-							text = "Stop"
-						}
-						return myButton(gtx, theme, lw.startButton, text, myColours.highlight)
+						return myButton(gtx, theme, lw.startButton, "Start", myColours.highlight)
 					},
 				),
 			)
