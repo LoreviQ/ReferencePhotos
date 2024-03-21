@@ -83,7 +83,7 @@ func draw(window *app.Window) error {
 		// Re-render app
 		case app.FrameEvent:
 			if localState.active {
-
+				slideshow(event, &ops, theme)
 			} else {
 				landingPage(window, event, &ops, theme, lw)
 			}
