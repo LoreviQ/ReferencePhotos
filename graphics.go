@@ -66,7 +66,7 @@ func draw(window *app.Window) error {
 		bg:        color.NRGBA{41, 40, 45, 255},
 		fg:        color.NRGBA{53, 54, 62, 255},
 		text:      color.NRGBA{255, 255, 255, 255},
-		highlight: color.NRGBA{60, 92, 115, 255},
+		highlight: color.NRGBA{63, 81, 182, 255},
 	}
 
 	// Landing Page Widgets
