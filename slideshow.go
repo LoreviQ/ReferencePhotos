@@ -10,9 +10,14 @@ import (
 	"slices"
 
 	"gioui.org/app"
+	"gioui.org/io/event"
+	"gioui.org/io/input"
+	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"golang.org/x/image/webp"
@@ -24,11 +29,21 @@ type ImageResult struct {
 }
 
 type slideshowWidgets struct {
-	currentImage *ImageResult
+	currentImage    *ImageResult
+	leftButton      *widget.Clickable
+	pauseButton     *widget.Clickable
+	rightButton     *widget.Clickable
+	exitButton      *widget.Clickable
+	infoButton      *widget.Clickable
+	folderButton    *widget.Clickable
+	volumeButton    *widget.Clickable
+	onTopButton     *widget.Clickable
+	greyscaleButton *widget.Clickable
+	timerButton     *widget.Clickable
 }
 
-func slideshow(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
-	gtx := app.NewContext(ops, event)
+func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
+	gtx := app.NewContext(ops, ev)
 	modifyStateSlideshow(window, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -73,10 +88,35 @@ func slideshow(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *mat
 			},
 		),
 	)
-	event.Frame(gtx.Ops)
+	layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
+		layout.Rigid(
+			func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{}.Layout(gtx,
+					layout.Flexed(5, layout.Spacer{}.Layout),
+					slideshowMiniButtons("1", ss.exitButton, theme),
+					slideshowMiniButtons("2", ss.infoButton, theme),
+					slideshowMiniButtons("3", ss.folderButton, theme),
+					slideshowMiniButtons("4", ss.volumeButton, theme),
+					slideshowMiniButtons("5", ss.onTopButton, theme),
+					slideshowMiniButtons("6", ss.greyscaleButton, theme),
+					slideshowMiniButtons("7", ss.timerButton, theme),
+					layout.Flexed(5, layout.Spacer{}.Layout),
+				)
+			},
+		),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+	)
+	checkHover(ops, ev.Source, gtx)
+	ev.Frame(gtx.Ops)
 }
 
 func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
+	if localState.inside && localState.opacity < 100 {
+		localState.opacity += 10
+	}
+	if !localState.inside && localState.opacity > 0 {
+		localState.opacity -= 10
+	}
 	if localState.order == nil || len(localState.order) == 0 {
 		getRandomOrder()
 	}
@@ -139,4 +179,41 @@ func (ss *slideshowWidgets) getNextImage() error {
 	localState.order = localState.order[1:]
 	localState.progress = 0
 	return nil
+}
+
+func checkHover(ops *op.Ops, q input.Source, gtx layout.Context) {
+	width, height := gtx.Constraints.Max.X, gtx.Constraints.Max.Y
+	defer clip.Rect{
+		Min: image.Pt(10, 0),
+		Max: image.Pt(width-20, height-10),
+	}.Push(ops).Pop()
+	event.Op(ops, tag)
+	for {
+		ev, ok := q.Event(pointer.Filter{
+			Target: tag,
+			Kinds:  pointer.Enter | pointer.Leave,
+		})
+		if !ok {
+			break
+		}
+
+		if x, ok := ev.(pointer.Event); ok {
+			switch x.Kind {
+			case pointer.Enter:
+				localState.inside = true
+			case pointer.Leave, pointer.Cancel:
+				localState.inside = false
+			}
+		}
+	}
+}
+
+func slideshowMiniButtons(text string, widget *widget.Clickable, theme *material.Theme) layout.FlexChild {
+	button := material.Button(theme, widget, text)
+	button.CornerRadius = unit.Dp(0)
+	button.Background = color.NRGBA{0, 0, 0, localState.opacity}
+	button.Color = color.NRGBA{255, 255, 255, localState.opacity * 2}
+	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+		return button.Layout(gtx)
+	})
 }

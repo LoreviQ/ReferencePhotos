@@ -19,6 +19,8 @@ type colours struct {
 	highlight color.NRGBA
 }
 
+var tag = new(bool)
+
 var myColours colours
 
 type state struct {
@@ -26,7 +28,9 @@ type state struct {
 	time     string
 	active   bool
 	paused   bool
+	inside   bool
 	progress float32
+	opacity  uint8
 	order    []string
 	exit     chan bool
 }
@@ -60,7 +64,9 @@ func draw(window *app.Window) error {
 		time:     "30s",
 		active:   false,
 		paused:   false,
+		inside:   false,
 		progress: 0,
+		opacity:  0,
 		order:    nil,
 		exit:     make(chan bool),
 	}
@@ -91,23 +97,34 @@ func draw(window *app.Window) error {
 			Error: nil,
 			Image: nil,
 		},
+		leftButton:      &widget.Clickable{},
+		pauseButton:     &widget.Clickable{},
+		rightButton:     &widget.Clickable{},
+		exitButton:      &widget.Clickable{},
+		infoButton:      &widget.Clickable{},
+		folderButton:    &widget.Clickable{},
+		volumeButton:    &widget.Clickable{},
+		onTopButton:     &widget.Clickable{},
+		greyscaleButton: &widget.Clickable{},
+		timerButton:     &widget.Clickable{},
 	}
 
 	// Main event loop
 	for {
-		switch event := window.NextEvent().(type) {
+		switch ev := window.NextEvent().(type) {
 
 		// Re-render app
 		case app.FrameEvent:
 			if localState.active {
-				slideshow(window, event, &ops, theme, &ss)
+				slideshow(window, ev, &ops, theme, &ss)
 			} else {
-				landingPage(window, event, &ops, theme, lw)
+				landingPage(window, ev, &ops, theme, lw)
 			}
 
 		// Exit app
 		case app.DestroyEvent:
-			return event.Err
+			return ev.Err
 		}
+
 	}
 }
