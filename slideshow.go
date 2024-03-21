@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
+	"io/fs"
 	"log"
 	"math/rand"
 	"os"
+	"slices"
 
 	"gioui.org/app"
 	"gioui.org/layout"
@@ -14,6 +15,7 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"golang.org/x/image/webp"
 )
 
 type ImageResult struct {
@@ -25,9 +27,9 @@ type slideshowWidgets struct {
 	currentImage *ImageResult
 }
 
-func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
+func slideshow(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
 	gtx := app.NewContext(ops, event)
-	modifyStateSlideshow(ss)
+	modifyStateSlideshow(window, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
 	layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -54,40 +56,62 @@ func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *sli
 	event.Frame(gtx.Ops)
 }
 
-func modifyStateSlideshow(ss *slideshowWidgets) {
-	fmt.Println(localState.progress)
+func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
 	if localState.order == nil || len(localState.order) == 0 {
 		getRandomOrder()
 	}
 	if ss.currentImage.Image == nil || localState.progress >= 1 {
-		ss.getNextImage()
+		err := ss.getNextImage()
+		if err != nil {
+			log.Printf("Cannot open %v. Err: %v", localState.order[0], err)
+			localState.order = localState.order[1:]
+			window.Invalidate()
+		}
 	}
 }
 
 func getRandomOrder() {
+	// Gets files in directory
 	files, err := os.ReadDir(localState.cfg.Directory)
 	if err != nil {
 		log.Fatal(err)
 	}
-	slideshowLength := len(files)
+	// Filters out unsupported files
+	var filename string
+	supportedFiletypes := []string{"jpeg", ".jpg", ".png", "webp"}
+	supportedFiles := make([]fs.DirEntry, 0, len(files))
+	for _, file := range files {
+		filename = file.Name()
+		if slices.Contains(supportedFiletypes, filename[len(filename)-4:]) {
+			supportedFiles = append(supportedFiles, file)
+		}
+	}
+	// Generates random order
+	slideshowLength := len(supportedFiles)
 	if slideshowLength > 50 {
 		slideshowLength = 50
 	}
-	order := rand.Perm(len(files))
+	order := rand.Perm(len(supportedFiles))
 	localState.order = make([]string, 0, slideshowLength)
 	for i := 0; i < 50; i++ {
-		localState.order = append(localState.order, files[order[i]].Name())
+		localState.order = append(localState.order, supportedFiles[order[i]].Name())
 	}
 }
 
 func (ss *slideshowWidgets) getNextImage() error {
+	log.Printf("Opening: %v\n", localState.order[0])
 	filepath := localState.cfg.Directory + string(os.PathSeparator) + localState.order[0]
 	file, err := os.Open(filepath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	img, _, err := image.Decode(file)
+	var img image.Image
+	if localState.order[0][len(localState.order[0])-4:] == "webp" {
+		img, err = webp.Decode(file)
+	} else {
+		img, _, err = image.Decode(file)
+	}
 	if err != nil {
 		return err
 	}
