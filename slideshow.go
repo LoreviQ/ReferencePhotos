@@ -31,21 +31,41 @@ func slideshow(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *mat
 	gtx := app.NewContext(ops, event)
 	modifyStateSlideshow(window, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
-	layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
-		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			if ss.currentImage.Error == nil && ss.currentImage.Image == nil {
-				// Blank
-				return layout.Dimensions{}
-			} else if ss.currentImage.Error != nil {
-				// Print Error
-				return material.H6(theme, ss.currentImage.Error.Error()).Layout(gtx)
-			}
-			// Draw image
-			return widget.Image{
-				Src: paint.NewImageOp(ss.currentImage.Image),
-				Fit: widget.Contain,
-			}.Layout(gtx)
-		}),
+	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Flexed(1,
+			layout.Spacer{}.Layout,
+		),
+		layout.Rigid(
+			func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+					layout.Flexed(1,
+						layout.Spacer{}.Layout,
+					),
+					layout.Rigid(
+						func(gtx layout.Context) layout.Dimensions {
+							if ss.currentImage.Error == nil && ss.currentImage.Image == nil {
+								// Blank
+								return layout.Dimensions{}
+							} else if ss.currentImage.Error != nil {
+								// Print Error
+								return material.H6(theme, ss.currentImage.Error.Error()).Layout(gtx)
+							}
+							// Draw image
+							return widget.Image{
+								Src: paint.NewImageOp(ss.currentImage.Image),
+								Fit: widget.Contain,
+							}.Layout(gtx)
+						},
+					),
+					layout.Flexed(1,
+						layout.Spacer{}.Layout,
+					),
+				)
+			},
+		),
+		layout.Flexed(1,
+			layout.Spacer{}.Layout,
+		),
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
 				bar := material.ProgressBar(theme, localState.progress)
