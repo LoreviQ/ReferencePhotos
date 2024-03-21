@@ -3,6 +3,9 @@ package main
 import (
 	"image"
 	"image/color"
+	"log"
+	"math/rand"
+	"os"
 
 	"gioui.org/app"
 	"gioui.org/layout"
@@ -21,9 +24,9 @@ type slideshowWidgets struct {
 	currentImage *ImageResult
 }
 
-func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss slideshowWidgets) {
+func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
 	gtx := app.NewContext(ops, event)
-	modifyStateSlideshow()
+	modifyStateSlideshow(ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
 	layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
@@ -50,6 +53,42 @@ func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss slid
 	event.Frame(gtx.Ops)
 }
 
-func modifyStateSlideshow() {
+func modifyStateSlideshow(ss *slideshowWidgets) {
+	if localState.order == nil || len(localState.order) == 0 {
+		getRandomOrder()
+	}
+	if ss.currentImage.Image == nil {
+		ss.getNextImage()
+	}
+}
 
+func getRandomOrder() {
+	files, err := os.ReadDir(localState.cfg.Directory)
+	if err != nil {
+		log.Fatal(err)
+	}
+	slideshowLength := len(files)
+	if slideshowLength > 50 {
+		slideshowLength = 50
+	}
+	order := rand.Perm(len(files))
+	localState.order = make([]string, 0, slideshowLength)
+	for i := 0; i < 50; i++ {
+		localState.order = append(localState.order, files[order[i]].Name())
+	}
+}
+
+func (ss *slideshowWidgets) getNextImage() error {
+	filepath := localState.cfg.Directory + string(os.PathSeparator) + localState.order[0]
+	file, err := os.Open(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return err
+	}
+	ss.currentImage.Image = img
+	return nil
 }

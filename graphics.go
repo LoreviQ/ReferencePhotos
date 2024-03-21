@@ -22,10 +22,11 @@ type colours struct {
 var myColours colours
 
 type state struct {
+	cfg      config
 	time     string
 	active   bool
 	progress float32
-	cfg      config
+	order    []string
 }
 
 var localState state
@@ -53,10 +54,11 @@ func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
 	localState = state{
+		cfg:      InitialiseConfig("./config.json"),
 		time:     "30s",
 		active:   false,
 		progress: 0,
-		cfg:      InitialiseConfig("./config.json"),
+		order:    nil,
 	}
 
 	//	My colours
@@ -94,7 +96,7 @@ func draw(window *app.Window) error {
 		// Re-render app
 		case app.FrameEvent:
 			if localState.active {
-				slideshow(event, &ops, theme, ss)
+				slideshow(event, &ops, theme, &ss)
 			} else {
 				landingPage(window, event, &ops, theme, lw)
 			}
