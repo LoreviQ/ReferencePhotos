@@ -34,9 +34,9 @@ type dimensions struct {
 	left   int
 }
 
-func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
+func landingPage(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
 	gtx := app.NewContext(ops, event)
-	modifyStateLandingPage(gtx, lw)
+	modifyStateLandingPage(window, gtx, lw)
 	paint.Fill(gtx.Ops, myColours.bg)
 	d := getDimensions(gtx, 400, 500)
 	margins := layout.Inset{
@@ -161,9 +161,12 @@ func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int
 	return d
 }
 
-func modifyStateLandingPage(gtx layout.Context, lw landingPageWidgets) {
-	if lw.startButton.Clicked(gtx) {
+func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPageWidgets) {
+	// Start Slideshow
+	if lw.startButton.Clicked(gtx) && localState.directory != "" {
 		localState.active = !localState.active
+		progressIncrementer := getProgressIncrementer(localState.time)
+		go incrementProgress(window, progressIncrementer)
 	}
 	// Time
 	if lw.timeButton30s.Clicked(gtx) {
@@ -185,6 +188,7 @@ func modifyStateLandingPage(gtx layout.Context, lw landingPageWidgets) {
 		localState.time = "10m"
 	}
 
+	// Get Directory Source
 	if lw.sourceButton.Clicked(gtx) {
 		dir, err := zenity.SelectFile(
 			zenity.Filename(""),

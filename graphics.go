@@ -74,8 +74,6 @@ func draw(window *app.Window) error {
 	}
 
 	// Slideshow Widgets
-	var progressIncrementer chan float32
-	go incrementProgress(window, progressIncrementer)
 
 	// Main event loop
 	for {
@@ -84,7 +82,11 @@ func draw(window *app.Window) error {
 
 		// Re-render app
 		case app.FrameEvent:
-			landingPage(event, &ops, theme, lw)
+			if localState.active {
+
+			} else {
+				landingPage(window, event, &ops, theme, lw)
+			}
 
 		// Exit app
 		case app.DestroyEvent:

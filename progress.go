@@ -8,12 +8,20 @@ import (
 
 var progress float32
 
-func getProgressIncrementer(increment float32) chan float32 {
+func getProgressIncrementer(increment string) chan float32 {
+	incrementMap := map[string]float32{
+		"30s": 0.00033333333,
+		"45s": 0.00022222222,
+		"1m":  0.00016666666,
+		"2m":  0.00008333333,
+		"5m":  0.00003333333,
+		"10m": 0.00001666666,
+	}
 	progressIncrementer := make(chan float32)
 	go func() {
 		for {
 			time.Sleep(time.Second / 100)
-			progressIncrementer <- increment
+			progressIncrementer <- incrementMap[increment]
 		}
 	}()
 	return progressIncrementer
