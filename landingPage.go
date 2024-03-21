@@ -77,7 +77,7 @@ func landingPage(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *m
 				),
 				layout.Flexed(2,
 					func(gtx layout.Context) layout.Dimensions {
-						dirSource := material.Label(theme, unit.Sp(15), fmt.Sprintf("Source: %v", localState.directory))
+						dirSource := material.Label(theme, unit.Sp(15), fmt.Sprintf("Source: %v", localState.cfg.Directory))
 						dirSource.Alignment = text.Start
 						dirSource.Color = myColours.text
 						return dirSource.Layout(gtx)
@@ -163,7 +163,7 @@ func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int
 
 func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPageWidgets) {
 	// Start Slideshow
-	if lw.startButton.Clicked(gtx) && localState.directory != "" {
+	if lw.startButton.Clicked(gtx) && localState.cfg.Directory != "" {
 		localState.active = !localState.active
 		progressIncrementer := getProgressIncrementer(localState.time)
 		go incrementProgress(window, progressIncrementer)
@@ -196,6 +196,7 @@ func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPa
 		if err != nil {
 			log.Print(err)
 		}
-		localState.directory = dir
+		localState.cfg.Directory = dir
+		localState.cfg.writeCFG()
 	}
 }

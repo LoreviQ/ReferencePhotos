@@ -22,10 +22,10 @@ type colours struct {
 var myColours colours
 
 type state struct {
-	time      string
-	directory string
-	active    bool
-	progress  float32
+	time     string
+	active   bool
+	progress float32
+	cfg      config
 }
 
 var localState state
@@ -52,7 +52,12 @@ func createGUI(width, height int) {
 func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
-	localState = state{time: "30s", directory: "", active: false}
+	localState = state{
+		time:     "30s",
+		active:   false,
+		progress: 0,
+		cfg:      InitialiseConfig("./config.json"),
+	}
 
 	//	My colours
 	myColours = colours{
