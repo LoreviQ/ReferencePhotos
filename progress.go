@@ -13,7 +13,8 @@ func getProgressIncrementer(increment string) chan float32 {
 		"1m":  0.00016666666,
 		"2m":  0.00008333333,
 		"5m":  0.00003333333,
-		"10m": 0.00001666666,
+		"10m": 0.01,
+		//"10m": 0.00001666666,
 	}
 	progressIncrementer := make(chan float32)
 	go func() {

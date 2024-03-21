@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -54,10 +55,11 @@ func slideshow(event app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *sli
 }
 
 func modifyStateSlideshow(ss *slideshowWidgets) {
+	fmt.Println(localState.progress)
 	if localState.order == nil || len(localState.order) == 0 {
 		getRandomOrder()
 	}
-	if ss.currentImage.Image == nil {
+	if ss.currentImage.Image == nil || localState.progress >= 1 {
 		ss.getNextImage()
 	}
 }
@@ -90,5 +92,7 @@ func (ss *slideshowWidgets) getNextImage() error {
 		return err
 	}
 	ss.currentImage.Image = img
+	localState.order = localState.order[1:]
+	localState.progress = 0
 	return nil
 }
