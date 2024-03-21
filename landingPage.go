@@ -166,7 +166,7 @@ func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPa
 	if lw.startButton.Clicked(gtx) && localState.cfg.Directory != "" {
 		localState.active = !localState.active
 		progressIncrementer := getProgressIncrementer(localState.time)
-		go incrementProgress(window, progressIncrementer)
+		go incrementProgress(window, progressIncrementer, localState.exit)
 	}
 	// Time
 	if lw.timeButton30s.Clicked(gtx) {

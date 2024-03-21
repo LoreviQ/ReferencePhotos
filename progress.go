@@ -26,11 +26,16 @@ func getProgressIncrementer(increment string) chan float32 {
 	return progressIncrementer
 }
 
-func incrementProgress(window *app.Window, progressIncrementer chan float32) {
-	for p := range progressIncrementer {
-		if localState.active && localState.progress < 1 {
-			localState.progress += p
-			window.Invalidate()
+func incrementProgress(window *app.Window, progressIncrementer chan float32, exit chan bool) {
+	for {
+		select {
+		case p := <-progressIncrementer:
+			if localState.active && localState.progress < 1 && !localState.paused {
+				localState.progress += p
+				window.Invalidate()
+			}
+		case <-exit:
+			return
 		}
 	}
 }

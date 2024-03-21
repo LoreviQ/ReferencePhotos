@@ -25,8 +25,10 @@ type state struct {
 	cfg      config
 	time     string
 	active   bool
+	paused   bool
 	progress float32
 	order    []string
+	exit     chan bool
 }
 
 var localState state
@@ -57,8 +59,10 @@ func draw(window *app.Window) error {
 		cfg:      InitialiseConfig("./config.json"),
 		time:     "30s",
 		active:   false,
+		paused:   false,
 		progress: 0,
 		order:    nil,
+		exit:     make(chan bool),
 	}
 
 	//	My colours
