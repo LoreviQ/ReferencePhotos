@@ -25,6 +25,7 @@ type state struct {
 	time      string
 	directory string
 	active    bool
+	progress  float32
 }
 
 var localState state
@@ -74,16 +75,21 @@ func draw(window *app.Window) error {
 	}
 
 	// Slideshow Widgets
+	ss := slideshowWidgets{
+		currentImage: &ImageResult{
+			Error: nil,
+			Image: nil,
+		},
+	}
 
 	// Main event loop
 	for {
-
 		switch event := window.NextEvent().(type) {
 
 		// Re-render app
 		case app.FrameEvent:
 			if localState.active {
-				slideshow(event, &ops, theme)
+				slideshow(event, &ops, theme, ss)
 			} else {
 				landingPage(window, event, &ops, theme, lw)
 			}

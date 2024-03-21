@@ -6,8 +6,6 @@ import (
 	"gioui.org/app"
 )
 
-var progress float32
-
 func getProgressIncrementer(increment string) chan float32 {
 	incrementMap := map[string]float32{
 		"30s": 0.00033333333,
@@ -29,8 +27,8 @@ func getProgressIncrementer(increment string) chan float32 {
 
 func incrementProgress(window *app.Window, progressIncrementer chan float32) {
 	for p := range progressIncrementer {
-		if localState.active && progress < 1 {
-			progress += p
+		if localState.active && localState.progress < 1 {
+			localState.progress += p
 			window.Invalidate()
 		}
 	}
