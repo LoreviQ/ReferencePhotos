@@ -36,7 +36,7 @@ type dimensions struct {
 
 func landingPage(event app.FrameEvent, ops *op.Ops, theme *material.Theme, lw landingPageWidgets) {
 	gtx := app.NewContext(ops, event)
-	modifyState(gtx, lw)
+	modifyStateLandingPage(gtx, lw)
 	paint.Fill(gtx.Ops, myColours.bg)
 	d := getDimensions(gtx, 400, 500)
 	margins := layout.Inset{
@@ -161,9 +161,9 @@ func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int
 	return d
 }
 
-func modifyState(gtx layout.Context, lw landingPageWidgets) {
+func modifyStateLandingPage(gtx layout.Context, lw landingPageWidgets) {
 	if lw.startButton.Clicked(gtx) {
-		active = !active
+		localState.active = !localState.active
 	}
 	// Time
 	if lw.timeButton30s.Clicked(gtx) {

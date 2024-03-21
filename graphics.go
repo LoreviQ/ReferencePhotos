@@ -24,6 +24,7 @@ var myColours colours
 type state struct {
 	time      string
 	directory string
+	active    bool
 }
 
 var localState state
@@ -50,7 +51,7 @@ func createGUI(width, height int) {
 func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
-	localState = state{time: "30s", directory: ""}
+	localState = state{time: "30s", directory: "", active: false}
 
 	//	My colours
 	myColours = colours{

@@ -6,7 +6,6 @@ import (
 	"gioui.org/app"
 )
 
-var active bool
 var progress float32
 
 func getProgressIncrementer(increment float32) chan float32 {
@@ -22,7 +21,7 @@ func getProgressIncrementer(increment float32) chan float32 {
 
 func incrementProgress(window *app.Window, progressIncrementer chan float32) {
 	for p := range progressIncrementer {
-		if active && progress < 1 {
+		if localState.active && progress < 1 {
 			progress += p
 			window.Invalidate()
 		}
