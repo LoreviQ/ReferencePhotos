@@ -44,6 +44,7 @@ type slideshowWidgets struct {
 
 func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
 	gtx := app.NewContext(ops, ev)
+	checkClick(ops, ev.Source, gtx)
 	modifyStateSlideshow(window, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
@@ -106,15 +107,14 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 		),
 		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
 	)
-	checkHover(ops, ev.Source, gtx)
 	ev.Frame(gtx.Ops)
 }
 
 func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
-	if localState.inside && localState.opacity < 100 {
+	if localState.showButtons && localState.opacity < 100 {
 		localState.opacity += 10
 	}
-	if !localState.inside && localState.opacity > 0 {
+	if !localState.showButtons && localState.opacity > 0 {
 		localState.opacity -= 10
 	}
 	if localState.order == nil || len(localState.order) == 0 {
@@ -181,17 +181,16 @@ func (ss *slideshowWidgets) getNextImage() error {
 	return nil
 }
 
-func checkHover(ops *op.Ops, q input.Source, gtx layout.Context) {
+func checkClick(ops *op.Ops, q input.Source, gtx layout.Context) {
 	width, height := gtx.Constraints.Max.X, gtx.Constraints.Max.Y
 	defer clip.Rect{
-		Min: image.Pt(10, 0),
-		Max: image.Pt(width-20, height-10),
+		Max: image.Pt(width, height),
 	}.Push(ops).Pop()
 	event.Op(ops, tag)
 	for {
 		ev, ok := q.Event(pointer.Filter{
 			Target: tag,
-			Kinds:  pointer.Enter | pointer.Leave,
+			Kinds:  pointer.Release,
 		})
 		if !ok {
 			break
@@ -199,10 +198,8 @@ func checkHover(ops *op.Ops, q input.Source, gtx layout.Context) {
 
 		if x, ok := ev.(pointer.Event); ok {
 			switch x.Kind {
-			case pointer.Enter:
-				localState.inside = true
-			case pointer.Leave, pointer.Cancel:
-				localState.inside = false
+			case pointer.Release:
+				localState.showButtons = !localState.showButtons
 			}
 		}
 	}
