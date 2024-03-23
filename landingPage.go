@@ -123,6 +123,47 @@ func landingPage(window *app.Window, event app.FrameEvent, ops *op.Ops, theme *m
 	event.Frame(gtx.Ops)
 }
 
+func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPageWidgets) {
+	// Start Slideshow
+	if lw.startButton.Clicked(gtx) && localState.cfg.Directory != "" {
+		localState.active = !localState.active
+		progressIncrementer := getProgressIncrementer(localState.time)
+		go incrementProgress(window, progressIncrementer, localState.exit)
+	}
+
+	// Time
+	if lw.timeButton30s.Clicked(gtx) {
+		localState.time = "30s"
+	}
+	if lw.timeButton45s.Clicked(gtx) {
+		localState.time = "45s"
+	}
+	if lw.timeButton1m.Clicked(gtx) {
+		localState.time = "1m"
+	}
+	if lw.timeButton2m.Clicked(gtx) {
+		localState.time = "2m"
+	}
+	if lw.timeButton5m.Clicked(gtx) {
+		localState.time = "5m"
+	}
+	if lw.timeButton10m.Clicked(gtx) {
+		localState.time = "10m"
+	}
+
+	// Get Directory Source
+	if lw.sourceButton.Clicked(gtx) {
+		dir, err := zenity.SelectFile(
+			zenity.Filename(""),
+			zenity.Directory())
+		if err != nil {
+			log.Print(err)
+		}
+		localState.cfg.Directory = dir
+		localState.cfg.writeCFG()
+	}
+}
+
 func myButton(gtx layout.Context, theme *material.Theme, widget *widget.Clickable, text string, colour color.NRGBA) layout.Dimensions {
 	button := material.Button(theme, widget, text)
 	button.CornerRadius = unit.Dp(0)
@@ -159,44 +200,4 @@ func getDimensions(gtx layout.Context, interactableHeight, interactableWidth int
 		d.left, d.right = 0, 0
 	}
 	return d
-}
-
-func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPageWidgets) {
-	// Start Slideshow
-	if lw.startButton.Clicked(gtx) && localState.cfg.Directory != "" {
-		localState.active = !localState.active
-		progressIncrementer := getProgressIncrementer(localState.time)
-		go incrementProgress(window, progressIncrementer, localState.exit)
-	}
-	// Time
-	if lw.timeButton30s.Clicked(gtx) {
-		localState.time = "30s"
-	}
-	if lw.timeButton45s.Clicked(gtx) {
-		localState.time = "45s"
-	}
-	if lw.timeButton1m.Clicked(gtx) {
-		localState.time = "1m"
-	}
-	if lw.timeButton2m.Clicked(gtx) {
-		localState.time = "2m"
-	}
-	if lw.timeButton5m.Clicked(gtx) {
-		localState.time = "5m"
-	}
-	if lw.timeButton10m.Clicked(gtx) {
-		localState.time = "10m"
-	}
-
-	// Get Directory Source
-	if lw.sourceButton.Clicked(gtx) {
-		dir, err := zenity.SelectFile(
-			zenity.Filename(""),
-			zenity.Directory())
-		if err != nil {
-			log.Print(err)
-		}
-		localState.cfg.Directory = dir
-		localState.cfg.writeCFG()
-	}
 }

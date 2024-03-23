@@ -51,7 +51,7 @@ type slideshowWidgets struct {
 func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
 	gtx := app.NewContext(ops, ev)
 	checkClick(ops, ev.Source, gtx)
-	modifyStateSlideshow(window, ss)
+	modifyStateSlideshow(window, gtx, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1,
@@ -105,7 +105,8 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 	ev.Frame(gtx.Ops)
 }
 
-func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
+func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowWidgets) {
+	// Button Opacity
 	var speed uint8 = 30
 	if localState.showButtons && localState.opacity < 255 {
 		if localState.opacity <= 255-speed {
@@ -121,9 +122,13 @@ func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
 			localState.opacity = 0
 		}
 	}
+
+	// Order
 	if localState.order == nil || len(localState.order) == 0 {
 		getRandomOrder()
 	}
+
+	// Current Image
 	if ss.currentImage.Image == nil || localState.progress >= 1 {
 		err := ss.getNextImage()
 		if err != nil {
@@ -131,6 +136,13 @@ func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
 			localState.order = localState.order[1:]
 			window.Invalidate()
 		}
+	}
+
+	// Buttons
+	if ss.exitButton.button.Clicked(gtx) {
+		localState.active = !localState.active
+		localState.progress = 1
+		localState.exit <- true
 	}
 }
 
