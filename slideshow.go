@@ -20,6 +20,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 	"golang.org/x/image/webp"
 )
 
@@ -58,20 +59,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 						layout.Spacer{}.Layout,
 					),
 					layout.Rigid(
-						func(gtx layout.Context) layout.Dimensions {
-							if ss.currentImage.Error == nil && ss.currentImage.Image == nil {
-								// Blank
-								return layout.Dimensions{}
-							} else if ss.currentImage.Error != nil {
-								// Print Error
-								return material.H6(theme, ss.currentImage.Error.Error()).Layout(gtx)
-							}
-							// Draw image
-							return widget.Image{
-								Src: paint.NewImageOp(ss.currentImage.Image),
-								Fit: widget.Contain,
-							}.Layout(gtx)
-						},
+						drawImage(ss.currentImage, theme),
 					),
 					layout.Flexed(1,
 						layout.Spacer{}.Layout,
@@ -89,24 +77,26 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 			},
 		),
 	)
-	layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
-		layout.Rigid(
-			func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{}.Layout(gtx,
-					layout.Flexed(5, layout.Spacer{}.Layout),
-					slideshowMiniButtons("1", ss.exitButton, theme),
-					slideshowMiniButtons("2", ss.infoButton, theme),
-					slideshowMiniButtons("3", ss.folderButton, theme),
-					slideshowMiniButtons("4", ss.volumeButton, theme),
-					slideshowMiniButtons("5", ss.onTopButton, theme),
-					slideshowMiniButtons("6", ss.greyscaleButton, theme),
-					slideshowMiniButtons("7", ss.timerButton, theme),
-					layout.Flexed(5, layout.Spacer{}.Layout),
-				)
-			},
-		),
-		layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
-	)
+	if localState.opacity > 0 {
+		layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
+			layout.Rigid(
+				func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{}.Layout(gtx,
+						layout.Flexed(5, layout.Spacer{}.Layout),
+						slideshowImageButtons(ss.exitButton, theme),
+						slideshowImageButtons(ss.infoButton, theme),
+						slideshowImageButtons(ss.folderButton, theme),
+						slideshowImageButtons(ss.volumeButton, theme),
+						slideshowImageButtons(ss.onTopButton, theme),
+						slideshowImageButtons(ss.greyscaleButton, theme),
+						slideshowImageButtons(ss.timerButton, theme),
+						layout.Flexed(5, layout.Spacer{}.Layout),
+					)
+				},
+			),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+	}
 	ev.Frame(gtx.Ops)
 }
 
@@ -205,12 +195,32 @@ func checkClick(ops *op.Ops, q input.Source, gtx layout.Context) {
 	}
 }
 
-func slideshowMiniButtons(text string, widget *widget.Clickable, theme *material.Theme) layout.FlexChild {
-	button := material.Button(theme, widget, text)
-	button.CornerRadius = unit.Dp(0)
-	button.Background = color.NRGBA{0, 0, 0, localState.opacity}
-	button.Color = color.NRGBA{255, 255, 255, localState.opacity * 2}
+func slideshowImageButtons(button *widget.Clickable, theme *material.Theme) layout.FlexChild {
+	icon, err := widget.NewIcon(icons.ContentAdd)
+	if err != nil {
+		log.Print(err)
+	}
+	iconButton := material.IconButton(theme, button, icon, "Exit Button")
+	iconButton.Background = color.NRGBA{0, 0, 0, localState.opacity}
+	iconButton.Color = color.NRGBA{255, 255, 255, localState.opacity * 2}
 	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-		return button.Layout(gtx)
+		return iconButton.Layout(gtx)
 	})
+}
+
+func drawImage(image *ImageResult, theme *material.Theme) func(layout.Context) layout.Dimensions {
+	return func(gtx layout.Context) layout.Dimensions {
+		if image.Error == nil && image.Image == nil {
+			// Blank
+			return layout.Dimensions{}
+		} else if image.Error != nil {
+			// Print Error
+			return material.H6(theme, image.Error.Error()).Layout(gtx)
+		}
+		// Draw image
+		return widget.Image{
+			Src: paint.NewImageOp(image.Image),
+			Fit: widget.Contain,
+		}.Layout(gtx)
+	}
 }
