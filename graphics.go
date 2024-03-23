@@ -10,6 +10,7 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"golang.org/x/exp/shiny/materialdesign/icons"
 )
 
 type colours struct {
@@ -59,6 +60,7 @@ func createGUI(width, height int) {
 func draw(window *app.Window) error {
 	var ops op.Ops
 	theme := material.NewTheme()
+	// Initialising State
 	localState = state{
 		cfg:         InitialiseConfig("./config.json"),
 		time:        "30s",
@@ -97,17 +99,54 @@ func draw(window *app.Window) error {
 			Error: nil,
 			Image: nil,
 		},
-		leftButton:      &widget.Clickable{},
-		pauseButton:     &widget.Clickable{},
-		rightButton:     &widget.Clickable{},
-		exitButton:      &widget.Clickable{},
-		infoButton:      &widget.Clickable{},
-		folderButton:    &widget.Clickable{},
-		volumeButton:    &widget.Clickable{},
-		onTopButton:     &widget.Clickable{},
-		greyscaleButton: &widget.Clickable{},
-		timerButton:     &widget.Clickable{},
+		leftButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Left Arrow",
+		},
+		pauseButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Pause",
+		},
+		rightButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Right Arrow",
+		},
+		exitButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Exit",
+		},
+		infoButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Info",
+		},
+		folderButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Folder",
+		},
+		volumeButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Volume",
+		},
+		onTopButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Always on Top",
+		},
+		greyscaleButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Greyscale",
+		},
+		timerButton: &iconButton{
+			button: &widget.Clickable{},
+			label:  "Time Button",
+		},
 	}
+	ss.exitButton.icon, _ = widget.NewIcon(icons.NavigationCancel)
+	ss.infoButton.icon, _ = widget.NewIcon(icons.ActionInfo)
+	ss.folderButton.icon, _ = widget.NewIcon(icons.FileFolderOpen)
+	ss.volumeButton.icon, _ = widget.NewIcon(icons.AVVolumeUp)
+	ss.onTopButton.icon, _ = widget.NewIcon(icons.AVLibraryAdd)
+	ss.greyscaleButton.icon, _ = widget.NewIcon(icons.ImageColorize)
+	ss.timerButton.icon, _ = widget.NewIcon(icons.ActionHourglassEmpty)
 
 	// Main event loop
 	for {

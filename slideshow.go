@@ -20,7 +20,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"golang.org/x/exp/shiny/materialdesign/icons"
 	"golang.org/x/image/webp"
 )
 
@@ -29,18 +28,24 @@ type ImageResult struct {
 	Image image.Image
 }
 
+type iconButton struct {
+	icon   *widget.Icon
+	button *widget.Clickable
+	label  string
+}
+
 type slideshowWidgets struct {
 	currentImage    *ImageResult
-	leftButton      *widget.Clickable
-	pauseButton     *widget.Clickable
-	rightButton     *widget.Clickable
-	exitButton      *widget.Clickable
-	infoButton      *widget.Clickable
-	folderButton    *widget.Clickable
-	volumeButton    *widget.Clickable
-	onTopButton     *widget.Clickable
-	greyscaleButton *widget.Clickable
-	timerButton     *widget.Clickable
+	leftButton      *iconButton
+	pauseButton     *iconButton
+	rightButton     *iconButton
+	exitButton      *iconButton
+	infoButton      *iconButton
+	folderButton    *iconButton
+	volumeButton    *iconButton
+	onTopButton     *iconButton
+	greyscaleButton *iconButton
+	timerButton     *iconButton
 }
 
 func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *material.Theme, ss *slideshowWidgets) {
@@ -101,11 +106,20 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 }
 
 func modifyStateSlideshow(window *app.Window, ss *slideshowWidgets) {
-	if localState.showButtons && localState.opacity < 100 {
-		localState.opacity += 10
+	var speed uint8 = 30
+	if localState.showButtons && localState.opacity < 255 {
+		if localState.opacity <= 255-speed {
+			localState.opacity += speed
+		} else {
+			localState.opacity = 255
+		}
 	}
 	if !localState.showButtons && localState.opacity > 0 {
-		localState.opacity -= 10
+		if localState.opacity >= speed {
+			localState.opacity -= speed
+		} else {
+			localState.opacity = 0
+		}
 	}
 	if localState.order == nil || len(localState.order) == 0 {
 		getRandomOrder()
@@ -195,16 +209,12 @@ func checkClick(ops *op.Ops, q input.Source, gtx layout.Context) {
 	}
 }
 
-func slideshowImageButtons(button *widget.Clickable, theme *material.Theme) layout.FlexChild {
-	icon, err := widget.NewIcon(icons.ContentAdd)
-	if err != nil {
-		log.Print(err)
-	}
-	iconButton := material.IconButton(theme, button, icon, "Exit Button")
-	iconButton.Background = color.NRGBA{0, 0, 0, localState.opacity}
-	iconButton.Color = color.NRGBA{255, 255, 255, localState.opacity * 2}
+func slideshowImageButtons(iconButton *iconButton, theme *material.Theme) layout.FlexChild {
+	iButton := material.IconButton(theme, iconButton.button, iconButton.icon, iconButton.label)
+	iButton.Background = color.NRGBA{0, 0, 0, 0}
+	iButton.Color = color.NRGBA{255, 255, 255, localState.opacity}
 	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-		return iconButton.Layout(gtx)
+		return iButton.Layout(gtx)
 	})
 }
 
