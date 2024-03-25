@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -54,17 +53,17 @@ func incrementProgress(window *app.Window, progressIncrementer chan float32, exi
 func playSound(p float32) {
 	var err error
 	if localState.progressBar.progress > 1-p*300 && localState.progressBar.sounds == 0 {
-		fmt.Println("one")
+		log.Println("Audio Alert 1")
 		err = beeep.Beep(beeep.DefaultFreq, beeep.DefaultDuration)
 		localState.progressBar.sounds++
 	}
 	if localState.progressBar.progress > 1-p*200 && localState.progressBar.sounds == 1 {
-		fmt.Println("two")
+		log.Println("Audio Alert 2")
 		err = beeep.Beep(beeep.DefaultFreq, beeep.DefaultDuration)
 		localState.progressBar.sounds++
 	}
 	if localState.progressBar.progress > 1-p*100 && localState.progressBar.sounds == 2 {
-		fmt.Println("three")
+		log.Println("Audio Alert 3")
 		err = beeep.Beep(beeep.DefaultFreq, beeep.DefaultDuration)
 		localState.progressBar.sounds++
 	}
