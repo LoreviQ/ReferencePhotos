@@ -31,6 +31,7 @@ type ImageResult struct {
 type iconButton struct {
 	icon   *widget.Icon
 	button *widget.Clickable
+	active bool
 	label  string
 }
 
@@ -224,7 +225,11 @@ func checkClick(ops *op.Ops, q input.Source, gtx layout.Context) {
 func slideshowImageButtons(iconButton *iconButton, theme *material.Theme) layout.FlexChild {
 	iButton := material.IconButton(theme, iconButton.button, iconButton.icon, iconButton.label)
 	iButton.Background = color.NRGBA{0, 0, 0, 0}
-	iButton.Color = color.NRGBA{255, 255, 255, localState.opacity}
+	if iconButton.active {
+		iButton.Color = color.NRGBA{255, 255, 255, localState.opacity}
+	} else {
+		iButton.Color = color.NRGBA{255, 255, 255, uint8(localState.opacity / 2)}
+	}
 	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 		return iButton.Layout(gtx)
 	})

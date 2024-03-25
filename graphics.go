@@ -101,42 +101,52 @@ func draw(window *app.Window) error {
 		},
 		leftButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Left Arrow",
 		},
 		pauseButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Pause",
 		},
 		rightButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Right Arrow",
 		},
 		exitButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Exit",
 		},
 		infoButton: &iconButton{
 			button: &widget.Clickable{},
+			active: false,
 			label:  "Info",
 		},
 		folderButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Folder",
 		},
 		volumeButton: &iconButton{
 			button: &widget.Clickable{},
+			active: true,
 			label:  "Volume",
 		},
 		onTopButton: &iconButton{
 			button: &widget.Clickable{},
+			active: false,
 			label:  "Always on Top",
 		},
 		greyscaleButton: &iconButton{
 			button: &widget.Clickable{},
+			active: false,
 			label:  "Greyscale",
 		},
 		timerButton: &iconButton{
 			button: &widget.Clickable{},
+			active: false,
 			label:  "Time Button",
 		},
 	}
