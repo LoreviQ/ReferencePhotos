@@ -83,13 +83,19 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 		layout.Flexed(1,
 			layout.Spacer{}.Layout,
 		),
-		layout.Rigid(
-			func(gtx layout.Context) layout.Dimensions {
-				bar := material.ProgressBar(theme, localState.progressBar.progress)
-				return bar.Layout(gtx)
-			},
-		),
 	)
+	// Progress Bar
+	if ss.timerButton.active {
+		layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
+			layout.Rigid(
+				func(gtx layout.Context) layout.Dimensions {
+					bar := material.ProgressBar(theme, localState.progressBar.progress)
+					bar.Height = unit.Dp(10)
+					return bar.Layout(gtx)
+				},
+			),
+		)
+	}
 	// Buttons
 	if localState.opacity > 0 {
 		layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
@@ -112,7 +118,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 		)
 	}
 	// File Data
-	if localState.showFileData {
+	if ss.infoButton.active {
 		layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 			layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
 			layout.Flexed(1,
@@ -176,8 +182,10 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 		localState.exit <- true
 	}
 	if ss.infoButton.button.Clicked(gtx) {
-		localState.showFileData = !localState.showFileData
 		ss.infoButton.active = !ss.infoButton.active
+	}
+	if ss.timerButton.button.Clicked(gtx) {
+		ss.timerButton.active = !ss.timerButton.active
 	}
 }
 

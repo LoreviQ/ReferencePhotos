@@ -25,14 +25,13 @@ var tag = new(bool)
 var myColours colours
 
 type state struct {
-	cfg          config      // From saved Config file
-	active       bool        // Is the slideshow active
-	showButtons  bool        // Should the buttons on the slideshow be shown
-	showFileData bool        // Should the filedata be shown
-	opacity      uint8       // Opacitiy of the buttons on the slideshow
-	order        []string    // Order of upcoming slideshow images
-	exit         chan bool   // Channel to stop progress incrementers
-	progressBar  progressBar // struct to manage progress bar variables
+	cfg         config      // From saved Config file
+	active      bool        // Is the slideshow active
+	showButtons bool        // Should the buttons on the slideshow be shown
+	opacity     uint8       // Opacitiy of the buttons on the slideshow
+	order       []string    // Order of upcoming slideshow images
+	exit        chan bool   // Channel to stop progress incrementers
+	progressBar progressBar // struct to manage progress bar variables
 }
 
 var localState state
@@ -61,13 +60,12 @@ func draw(window *app.Window) error {
 	theme := material.NewTheme()
 	// Initialising State
 	localState = state{
-		cfg:          InitialiseConfig("./config.json"),
-		active:       false,
-		showButtons:  false,
-		showFileData: false,
-		opacity:      0,
-		order:        nil,
-		exit:         make(chan bool),
+		cfg:         InitialiseConfig("./config.json"),
+		active:      false,
+		showButtons: false,
+		opacity:     0,
+		order:       nil,
+		exit:        make(chan bool),
 		progressBar: progressBar{
 			progress: 0,
 			time:     "30s",
@@ -149,7 +147,7 @@ func draw(window *app.Window) error {
 		},
 		timerButton: &iconButton{
 			button: &widget.Clickable{},
-			active: false,
+			active: true,
 			label:  "Time Button",
 		},
 	}
