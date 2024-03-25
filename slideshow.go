@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"io/fs"
 	"log"
 	"math/rand"
@@ -17,6 +19,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
@@ -24,8 +27,11 @@ import (
 )
 
 type ImageResult struct {
-	Error error
-	Image image.Image
+	Error    error
+	Image    image.Image
+	Filename string
+	Size     image.Point // Pixels
+	Filesize int64       // Bytes
 }
 
 type iconButton struct {
@@ -54,6 +60,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 	checkClick(ops, ev.Source, gtx)
 	modifyStateSlideshow(window, gtx, ss)
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 255})
+	// Image
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Flexed(1,
 			layout.Spacer{}.Layout,
@@ -83,6 +90,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 			},
 		),
 	)
+	// Buttons
 	if localState.opacity > 0 {
 		layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceStart}.Layout(gtx,
 			layout.Rigid(
@@ -101,6 +109,27 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 				},
 			),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(5)}.Layout),
+		)
+	}
+	// File Data
+	if localState.showFileData {
+		layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+			layout.Rigid(layout.Spacer{Height: unit.Dp(10)}.Layout),
+			layout.Flexed(1,
+				func(gtx layout.Context) layout.Dimensions {
+					title := material.Label(theme, unit.Sp(20),
+						fmt.Sprintf("%v\n%dx%d px - %d KB",
+							ss.currentImage.Filename,
+							ss.currentImage.Size.X,
+							ss.currentImage.Size.Y,
+							ss.currentImage.Filesize/1024,
+						),
+					)
+					title.Alignment = text.Middle
+					title.Color = myColours.text
+					return title.Layout(gtx)
+				},
+			),
 		)
 	}
 	ev.Frame(gtx.Ops)
@@ -145,6 +174,10 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 		localState.progress = 1
 		localState.exit <- true
 	}
+	if ss.infoButton.button.Clicked(gtx) {
+		localState.showFileData = !localState.showFileData
+		ss.infoButton.active = !ss.infoButton.active
+	}
 }
 
 func getRandomOrder() {
@@ -176,23 +209,56 @@ func getRandomOrder() {
 }
 
 func (ss *slideshowWidgets) getNextImage() error {
-	log.Printf("Opening: %v\n", localState.order[0])
-	filepath := localState.cfg.Directory + string(os.PathSeparator) + localState.order[0]
+	// Opening File
+	filename := localState.order[0]
+	log.Printf("Opening: %v\n", filename)
+	filepath := localState.cfg.Directory + string(os.PathSeparator) + filename
 	file, err := os.Open(filepath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	var img image.Image
-	if localState.order[0][len(localState.order[0])-4:] == "webp" {
-		img, err = webp.Decode(file)
-	} else {
-		img, _, err = image.Decode(file)
-	}
+	fileInfo, err := file.Stat()
 	if err != nil {
 		return err
 	}
+
+	//Decoding Image
+	var img image.Image
+	var imgCfg image.Config
+	if filename[len(filename)-4:] == "webp" {
+		img, err = webp.Decode(file)
+		if err != nil {
+			return err
+		}
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+		imgCfg, err = webp.DecodeConfig(file)
+		if err != nil {
+			return err
+		}
+	} else {
+		img, _, err = image.Decode(file)
+		if err != nil {
+			return err
+		}
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+		imgCfg, _, err = image.DecodeConfig(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Updating State
 	ss.currentImage.Image = img
+	ss.currentImage.Filename = filename
+	ss.currentImage.Filesize = fileInfo.Size()
+	ss.currentImage.Size = image.Point{imgCfg.Width, imgCfg.Height}
 	localState.order = localState.order[1:]
 	localState.progress = 0
 	return nil

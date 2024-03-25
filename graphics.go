@@ -25,15 +25,16 @@ var tag = new(bool)
 var myColours colours
 
 type state struct {
-	cfg         config
-	time        string
-	active      bool
-	paused      bool
-	showButtons bool
-	progress    float32
-	opacity     uint8
-	order       []string
-	exit        chan bool
+	cfg          config
+	time         string
+	active       bool
+	paused       bool
+	showButtons  bool
+	showFileData bool
+	progress     float32
+	opacity      uint8
+	order        []string
+	exit         chan bool
 }
 
 var localState state
@@ -62,15 +63,16 @@ func draw(window *app.Window) error {
 	theme := material.NewTheme()
 	// Initialising State
 	localState = state{
-		cfg:         InitialiseConfig("./config.json"),
-		time:        "30s",
-		active:      false,
-		paused:      false,
-		showButtons: false,
-		progress:    0,
-		opacity:     0,
-		order:       nil,
-		exit:        make(chan bool),
+		cfg:          InitialiseConfig("./config.json"),
+		time:         "30s",
+		active:       false,
+		paused:       false,
+		showButtons:  false,
+		showFileData: false,
+		progress:     0,
+		opacity:      0,
+		order:        nil,
+		exit:         make(chan bool),
 	}
 
 	//	My colours
