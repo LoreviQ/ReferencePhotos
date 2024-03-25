@@ -85,7 +85,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 		),
 		layout.Rigid(
 			func(gtx layout.Context) layout.Dimensions {
-				bar := material.ProgressBar(theme, localState.progress)
+				bar := material.ProgressBar(theme, localState.progressBar.progress)
 				return bar.Layout(gtx)
 			},
 		),
@@ -159,8 +159,9 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 	}
 
 	// Current Image
-	if ss.currentImage.Image == nil || localState.progress >= 1 {
+	if ss.currentImage.Image == nil || localState.progressBar.progress >= 1 {
 		err := ss.getNextImage()
+		localState.progressBar.sounds = 0
 		if err != nil {
 			log.Printf("Cannot open %v. Err: %v", localState.order[0], err)
 			localState.order = localState.order[1:]
@@ -171,7 +172,7 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 	// Buttons
 	if ss.exitButton.button.Clicked(gtx) {
 		localState.active = !localState.active
-		localState.progress = 1
+		localState.progressBar.progress = 1
 		localState.exit <- true
 	}
 	if ss.infoButton.button.Clicked(gtx) {
@@ -260,7 +261,7 @@ func (ss *slideshowWidgets) getNextImage() error {
 	ss.currentImage.Filesize = fileInfo.Size()
 	ss.currentImage.Size = image.Point{imgCfg.Width, imgCfg.Height}
 	localState.order = localState.order[1:]
-	localState.progress = 0
+	localState.progressBar.progress = 0
 	return nil
 }
 

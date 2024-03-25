@@ -1,10 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"gioui.org/app"
 )
+
+type progressBar struct {
+	progress float32
+	time     string
+	paused   bool
+	sounds   uint8
+}
 
 func getProgressIncrementer(increment string) chan float32 {
 	incrementMap := map[string]float32{
@@ -30,12 +38,28 @@ func incrementProgress(window *app.Window, progressIncrementer chan float32, exi
 	for {
 		select {
 		case p := <-progressIncrementer:
-			if localState.active && localState.progress < 1 && !localState.paused {
-				localState.progress += p
+			if localState.active && localState.progressBar.progress < 1 && !localState.progressBar.paused {
+				localState.progressBar.progress += p
+				playSound(p)
 				window.Invalidate()
 			}
 		case <-exit:
 			return
 		}
+	}
+}
+
+func playSound(p float32) {
+	if localState.progressBar.progress > 1-p*300 && localState.progressBar.sounds == 0 {
+		fmt.Println("one")
+		localState.progressBar.sounds++
+	}
+	if localState.progressBar.progress > 1-p*200 && localState.progressBar.sounds == 1 {
+		fmt.Println("two")
+		localState.progressBar.sounds++
+	}
+	if localState.progressBar.progress > 1-p*100 && localState.progressBar.sounds == 2 {
+		fmt.Println("three")
+		localState.progressBar.sounds++
 	}
 }

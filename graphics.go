@@ -25,16 +25,14 @@ var tag = new(bool)
 var myColours colours
 
 type state struct {
-	cfg          config
-	time         string
-	active       bool
-	paused       bool
-	showButtons  bool
-	showFileData bool
-	progress     float32
-	opacity      uint8
-	order        []string
-	exit         chan bool
+	cfg          config      // From saved Config file
+	active       bool        // Is the slideshow active
+	showButtons  bool        // Should the buttons on the slideshow be shown
+	showFileData bool        // Should the filedata be shown
+	opacity      uint8       // Opacitiy of the buttons on the slideshow
+	order        []string    // Order of upcoming slideshow images
+	exit         chan bool   // Channel to stop progress incrementers
+	progressBar  progressBar // struct to manage progress bar variables
 }
 
 var localState state
@@ -64,15 +62,18 @@ func draw(window *app.Window) error {
 	// Initialising State
 	localState = state{
 		cfg:          InitialiseConfig("./config.json"),
-		time:         "30s",
 		active:       false,
-		paused:       false,
 		showButtons:  false,
 		showFileData: false,
-		progress:     0,
 		opacity:      0,
 		order:        nil,
 		exit:         make(chan bool),
+		progressBar: progressBar{
+			progress: 0,
+			time:     "30s",
+			paused:   false,
+			sounds:   0,
+		},
 	}
 
 	//	My colours

@@ -127,28 +127,28 @@ func modifyStateLandingPage(window *app.Window, gtx layout.Context, lw landingPa
 	// Start Slideshow
 	if lw.startButton.Clicked(gtx) && localState.cfg.Directory != "" {
 		localState.active = !localState.active
-		progressIncrementer := getProgressIncrementer(localState.time)
+		progressIncrementer := getProgressIncrementer(localState.progressBar.time)
 		go incrementProgress(window, progressIncrementer, localState.exit)
 	}
 
 	// Time
 	if lw.timeButton30s.Clicked(gtx) {
-		localState.time = "30s"
+		localState.progressBar.time = "30s"
 	}
 	if lw.timeButton45s.Clicked(gtx) {
-		localState.time = "45s"
+		localState.progressBar.time = "45s"
 	}
 	if lw.timeButton1m.Clicked(gtx) {
-		localState.time = "1m"
+		localState.progressBar.time = "1m"
 	}
 	if lw.timeButton2m.Clicked(gtx) {
-		localState.time = "2m"
+		localState.progressBar.time = "2m"
 	}
 	if lw.timeButton5m.Clicked(gtx) {
-		localState.time = "5m"
+		localState.progressBar.time = "5m"
 	}
 	if lw.timeButton10m.Clicked(gtx) {
-		localState.time = "10m"
+		localState.progressBar.time = "10m"
 	}
 
 	// Get Directory Source
@@ -174,7 +174,7 @@ func myButton(gtx layout.Context, theme *material.Theme, widget *widget.Clickabl
 
 func timerToggles(time string, widget *widget.Clickable, theme *material.Theme) layout.FlexChild {
 	buttonColour := myColours.fg
-	if localState.time == time {
+	if localState.progressBar.time == time {
 		buttonColour = myColours.highlight
 	}
 	return layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
