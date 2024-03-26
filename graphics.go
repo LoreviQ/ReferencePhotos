@@ -135,9 +135,9 @@ func draw(window *app.Window) error {
 			active: true,
 			label:  "Volume",
 		},
-		onTopButton: &iconButton{
+		deleteButton: &iconButton{
 			button: &widget.Clickable{},
-			active: false,
+			active: true,
 			label:  "Always on Top",
 		},
 		greyscaleButton: &iconButton{
@@ -155,7 +155,7 @@ func draw(window *app.Window) error {
 	ss.infoButton.icon, _ = widget.NewIcon(icons.ActionInfo)
 	ss.folderButton.icon, _ = widget.NewIcon(icons.FileFolderOpen)
 	ss.volumeButton.icon, _ = widget.NewIcon(icons.AVVolumeUp)
-	ss.onTopButton.icon, _ = widget.NewIcon(icons.AVLibraryAdd)
+	ss.deleteButton.icon, _ = widget.NewIcon(icons.ActionDelete)
 	ss.greyscaleButton.icon, _ = widget.NewIcon(icons.ImageColorize)
 	ss.timerButton.icon, _ = widget.NewIcon(icons.ActionHourglassEmpty)
 

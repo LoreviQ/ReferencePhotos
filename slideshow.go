@@ -50,7 +50,7 @@ type slideshowWidgets struct {
 	infoButton      *iconButton
 	folderButton    *iconButton
 	volumeButton    *iconButton
-	onTopButton     *iconButton
+	deleteButton    *iconButton
 	greyscaleButton *iconButton
 	timerButton     *iconButton
 }
@@ -107,7 +107,7 @@ func slideshow(window *app.Window, ev app.FrameEvent, ops *op.Ops, theme *materi
 						slideshowImageButtons(ss.infoButton, theme),
 						slideshowImageButtons(ss.folderButton, theme),
 						slideshowImageButtons(ss.volumeButton, theme),
-						slideshowImageButtons(ss.onTopButton, theme),
+						slideshowImageButtons(ss.deleteButton, theme),
 						slideshowImageButtons(ss.greyscaleButton, theme),
 						slideshowImageButtons(ss.timerButton, theme),
 						layout.Flexed(5, layout.Spacer{}.Layout),
@@ -167,7 +167,6 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 	// Current Image
 	if ss.currentImage.Image == nil || localState.progressBar.progress >= 1 {
 		err := ss.getNextImage()
-		localState.progressBar.sounds = 0
 		if err != nil {
 			log.Printf("Cannot open %v. Err: %v", localState.order[0], err)
 			localState.order = localState.order[1:]
@@ -183,6 +182,19 @@ func modifyStateSlideshow(window *app.Window, gtx layout.Context, ss *slideshowW
 	}
 	if ss.infoButton.button.Clicked(gtx) {
 		ss.infoButton.active = !ss.infoButton.active
+	}
+	if ss.deleteButton.button.Clicked(gtx) {
+		filepath := localState.cfg.Directory + string(os.PathSeparator) + ss.currentImage.Filename
+		err := os.Remove(filepath)
+		if err != nil {
+			log.Println(err)
+		}
+		err = ss.getNextImage()
+		if err != nil {
+			log.Printf("Cannot open %v. Err: %v", localState.order[0], err)
+			localState.order = localState.order[1:]
+			window.Invalidate()
+		}
 	}
 	if ss.timerButton.button.Clicked(gtx) {
 		ss.timerButton.active = !ss.timerButton.active
@@ -270,6 +282,7 @@ func (ss *slideshowWidgets) getNextImage() error {
 	ss.currentImage.Size = image.Point{imgCfg.Width, imgCfg.Height}
 	localState.order = localState.order[1:]
 	localState.progressBar.progress = 0
+	localState.progressBar.sounds = 0
 	return nil
 }
 
